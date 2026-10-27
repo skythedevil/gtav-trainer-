@@ -27,7 +27,7 @@ static u64 nc(u64 address, u32 count, u64 *args, u64 *out) {
 // link-time address in this flat image, which can be allocated at any base.
 static u64 native_pointer(const void *p){u64 address=(u64)p;__asm__ volatile("" : "+r"(address));return address;}
 #define P(x) native_pointer(x)
-enum { GOD, CLIP, AMMO, RUN, JUMP, WANTED, EXPLOSIVE, BELT, RADIO, PHONE, CAR_GOD, HORN, STICKY, WATER, FIDELITY, TOGGLE_COUNT };
+enum { GOD, CLIP, AMMO, RUN, JUMP, WANTED, EXPLOSIVE, BELT, RADIO, PHONE, CAR_GOD, HORN, STICKY, WATER, FIDELITY, SPEEDO, TOGGLE_COUNT };
 #include "fidelity-cap.h"
 static FidelityCap fidelity;
 #include "vehicle-catalogue.h"
@@ -36,6 +36,7 @@ static const char vehicle_classes[][24]={"Compacts","Sedans","SUVs","Coupes","Mu
 static struct {
     u32 frame, initialized, open, page, row, previous_keys, confirm, job, step, started, model;
     u32 flags[TOGGLE_COUNT], vehicle, vehicle_model, weapon, weather, hour, component, drawable, texture;
+    u32 speedo_style, speedo_mph;
     u32 spawn, character, tick_count, renders, last_error, wanted_clears, last_ped, last_vehicle;
     float x, y; char notice[96]; u32 notice_until; u64 prologue_stack, prologue_thread, prologue_hash; u32 prologue_offset;
     u32 warm_model, warm_ready, warm_changed, warm_candidate, repeat_key, repeat_at, parent, parent_row;
@@ -230,9 +231,41 @@ static void text(float x,float y,float size,const char *s,u32 green) {
     N(BEGIN_TEXT_COMMAND_DISPLAY_TEXT,P("STRING"));N(ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME,P(s));N(END_TEXT_COMMAND_DISPLAY_TEXT,F(x),F(y),0);
 }
 static void rect(float x,float y,float w,float h,u32 r,u32 g,u32 b,u32 a) { N(DRAW_RECT,F(x),F(y),F(w),F(h),r,g,b,a,0); }
+static void speedometer_tick(void) {
+    if (!menu.flags[SPEEDO] || menu.open || menu.preview_active || N(IS_CUTSCENE_ACTIVE)) return;
+    u32 vehicle = car();
+    if (!vehicle || !N(DOES_ENTITY_EXIST, vehicle)) return;
+    float metres_per_second = as_float(N(GET_ENTITY_SPEED, vehicle));
+    if (!(metres_per_second >= 0.0f) || metres_per_second > 250.0f) return;
+    float speed = metres_per_second * (menu.speedo_mph ? 2.2369363f : 3.6f);
+    u32 rounded = (u32)(speed + 0.5f);
+    char value[16]; number(value, rounded);
+    const char *unit = menu.speedo_mph ? "MPH" : "KM/H";
+    if (!menu.speedo_style) {
+        rect(.865f,.875f,.190f,.085f,8,14,18,220);
+        rect(.865f,.832f,.190f,.002f,61,84,78,255);
+        text(.790f,.842f,.23f,"SPEED",0);
+        text(.790f,.865f,.42f,value,1);
+        text(.922f,.891f,.22f,unit,0);
+        return;
+    }
+    // A compact dashboard-style half-dial made from native HUD primitives.
+    rect(.865f,.858f,.218f,.132f,8,14,18,220);
+    static const float xs[13]={.773f,.784f,.800f,.819f,.841f,.865f,.889f,.911f,.930f,.946f,.958f,.965f,.968f};
+    static const float ys[13]={.861f,.835f,.812f,.794f,.782f,.778f,.782f,.794f,.812f,.835f,.861f,.879f,.889f};
+    float max_speed = menu.speedo_mph ? 160.0f : 260.0f;
+    float ratio = speed / max_speed;
+    if (ratio > 1.0f) ratio = 1.0f;
+    for (u32 i=0;i<13;i++) {
+        u32 lit = (float)i <= ratio * 12.0f;
+        rect(xs[i],ys[i],.006f,.015f,lit?61:45,lit?220:58,lit?151:66,255);
+    }
+    text(.823f,.827f,.36f,value,1);
+    text(.840f,.862f,.19f,unit,0);
+}
 #define ITEMS(a) (sizeof(a)/sizeof((a)[0]))
 static const char *title(u32 page) { switch(page){case 1:return "PLAYER";case 2:return "WEAPONS";case 3:return "GARAGE";case 4:return "VEHICLE SPAWNER";case 5:return "WORLD";case 6:return "CHARACTER";case 7:return "STORY & PROGRESSION";case 8:return "WEAPON CATALOGUE";case 9:return "WEATHER";case 10:return "PLAYER MODELS";case 11:return "CLOTHING & OUTFITS";case 12:return "CLOTHING ITEMS";case 13:return "COLORS / TEXTURES";case 14:return "TIME OF DAY";case 15:return vehicle_classes[menu.vehicle_class];default:return "STORY MODE";} }
-static u32 rows(void) {switch(menu.page){case 1:return 9;case 2:return 5;case 3:return 8;case 4:return menu.class_total?menu.class_total:1;case 15:return menu.class_count[menu.vehicle_class]?menu.class_count[menu.vehicle_class]:1;case 5:return 4;case 6:return 2;case 7:return 5;case 8:return ITEMS(weapon_names);case 9:return ITEMS(weather_names);case 10:return ITEMS(ped_names);case 11:return ITEMS(component_labels);case 12:{u32 n=N(GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS,ped(),menu.component);return n&&n<4096?n:1;}case 13:{u32 n=N(GET_NUMBER_OF_PED_TEXTURE_VARIATIONS,ped(),menu.component,menu.drawable);return n&&n<4096?n:1;}case 14:return 24;default:return 8;}}
+static u32 rows(void) {switch(menu.page){case 1:return 9;case 2:return 5;case 3:return 11;case 4:return menu.class_total?menu.class_total:1;case 15:return menu.class_count[menu.vehicle_class]?menu.class_count[menu.vehicle_class]:1;case 5:return 4;case 6:return 2;case 7:return 5;case 8:return ITEMS(weapon_names);case 9:return ITEMS(weather_names);case 10:return ITEMS(ped_names);case 11:return ITEMS(component_labels);case 12:{u32 n=N(GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS,ped(),menu.component);return n&&n<4096?n:1;}case 13:{u32 n=N(GET_NUMBER_OF_PED_TEXTURE_VARIATIONS,ped(),menu.component,menu.drawable);return n&&n<4096?n:1;}case 14:return 24;default:return 8;}}
 static void scroll_to_selection(void) {
     u32 n=rows();if(menu.row>=n)menu.row=n-1;
     u32 old=menu.scroll;
@@ -254,7 +287,7 @@ static int toggle_at(u32 page,u32 row) {
     if(page==5&&row==3)return FIDELITY;
     if(page==1){switch(row){case 0:return GOD;case 1:return WANTED;case 2:return RUN;case 3:return JUMP;case 4:return BELT;case 5:return RADIO;case 6:return PHONE;}}
     if(page==2&&row<3)return row==0?CLIP:row==1?AMMO:EXPLOSIVE;
-    if(page==3){switch(row){case 0:return CAR_GOD;case 2:return HORN;case 3:return STICKY;case 4:return WATER;}}
+    if(page==3){switch(row){case 0:return CAR_GOD;case 2:return HORN;case 3:return STICKY;case 4:return WATER;case 8:return SPEEDO;}}
     return -1;
 }
 static const char *label(u32 row) {
@@ -262,7 +295,7 @@ static const char *label(u32 row) {
     case 0:switch(row){case 0:return "Player";case 1:return "Weapons";case 2:return "Garage";case 3:return "Vehicle spawner";case 4:return "World";case 5:return "Character";case 6:return "Story & progression";default:return "Close menu";}
     case 1:switch(row){case 0:return "God mode";case 1:return "Never wanted";case 2:return "Super run (1.49x)";case 3:return "Super jump";case 4:return "Seatbelt";case 5:return "Walking radio";case 6:return "Phone off";case 7:return "Heal player";default:return "Clear wanted level now";}
     case 2:switch(row){case 0:return "Infinite clip";case 1:return "Infinite ammo";case 2:return "Explosive ammo";case 3:return "Weapon catalogue";default:return "Give all weapons";}
-    case 3:switch(row){case 0:return "Vehicle god mode";case 1:return "Max performance upgrades";case 2:return "Horn boost";case 3:return "Stick vehicle to ground";case 4:return "Drive on water";case 5:return "Repair vehicle";case 6:return "Upright vehicle";default:return "Vehicle spawner";}
+    case 3:switch(row){case 0:return "Vehicle god mode";case 1:return "Max performance upgrades";case 2:return "Horn boost";case 3:return "Stick vehicle to ground";case 4:return "Drive on water";case 5:return "Repair vehicle";case 6:return "Upright vehicle";case 7:return "Vehicle spawner";case 8:return "Speedometer";case 9:return menu.speedo_style?"Speedometer style: Gauge":"Speedometer style: Digital";default:return menu.speedo_mph?"Speed unit: MPH":"Speed unit: KM/H";}
     case 4:return row<menu.class_total?vehicle_classes[menu.available_classes[row]]:"Preparing catalogue...";
     case 15:{u32 i=vehicle_index(row);return i<VEHICLE_CANDIDATES?vehicle_text+vehicle_catalogue[i].label:"No available vehicles";}
     case 5:return row==0?"Teleport to waypoint":row==1?"Weather presets":row==2?"Time of day":"Fidelity 60 FPS";
@@ -387,6 +420,8 @@ static void activate(u32 confirmed) {
     u32 p=ped(),v=car(),r=menu.row;
     if(!p){say("Character not ready");return;}
     if(menu.page==0){if(r==7)menu.open=0;else enter_page(r+1,0);return;}
+    if(menu.page==3&&r==9){menu.speedo_style^=1;say(menu.speedo_style?"Dashboard gauge selected":"Digital speedometer selected");return;}
+    if(menu.page==3&&r==10){menu.speedo_mph^=1;say(menu.speedo_mph?"Speed unit set to MPH":"Speed unit set to KM/H");return;}
     int id=toggle_at(menu.page,r);
     // Simple toggles remain responsive while a model is streaming. Water owns
     // an object-loading job, so it shares the single streaming queue.
@@ -612,6 +647,7 @@ static void menu_tick(void) {
         block_menu_buttons();
         render_menu();
     }
+    speedometer_tick();
     mailbox.menu_job=menu.job;mailbox.job_elapsed=menu.job?now()-menu.started:0;
     mailbox.last_job_ms=menu.last_job_ms;mailbox.selection=(menu.page<<16)|menu.row;
     mailbox.warm_model=menu.warm_model;mailbox.warm_ready=menu.warm_ready;
