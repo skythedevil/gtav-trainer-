@@ -1,0 +1,30 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.skythedevil.gtavmenu'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "io.github.skythedevil.gtavmenu"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release { minifyEnabled false }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    // Menu files must not be compressed or altered when packed into the APK.
+    androidResources { noCompress += ['bin', 'json'] }
+
+    lint { abortOnError false }
+}
