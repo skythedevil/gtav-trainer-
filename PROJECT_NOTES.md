@@ -9,14 +9,14 @@ https://github.com/GronedWaffel/gta-v-ps5-menu does: it installs an in-game chea
 
 Important: the cheats themselves live in a small program (`gta-bridge.bin`) that runs INSIDE the game after install. The phone app only installs it. After install, the phone can be closed. All menu functions are therefore identical to the original.
 
-## Current status (v1.0.0)
+## Current status (v1.0.1)
 | Area | State |
 |---|---|
 | Android app screen (IP, port, Check, Install, log) | Written, compiles against Android API 33 stubs |
 | Installer logic (port of the original JS installer) | Written, passes 25 checks against a pretend PS5 (`tools/selftest`) |
 | Bundled menu files for both game builds (PPSA04263 01.000.000, PPSA04264 01.010.002) | Copied unchanged from upstream into `app/src/main/assets/menu` |
 | Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Runs and succeeds (first run 2026-10-27). Publishes the APK as a Release |
-| Real PS5 test | **NOT done** (no console available to Claude) |
+| Real PS5 test | Install confirmed working on the owner's real PS5 (2026-10-27) |
 | Gradle build / APK file | Built by GitHub Actions. Direct link: https://github.com/skythedevil/gtav-trainer-/releases/latest/download/app-debug.apk |
 
 ## How the installer works (same order as upstream)
@@ -49,6 +49,7 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - Phone and PS5 must be on the same Wi-Fi. If a future Android version blocks local-network access, the app may need an extra permission.
 
 ## Change log
+- 2026-10-27 v1.0.1: Credits added: new README (credit to GronedWaffel, install guide, troubleshooting), CREDITS.md, in-app credit line.
 - 2026-10-27: Project pushed to github.com/skythedevil/gtav-trainer-; first GitHub build succeeded; workflow now also publishes the APK as a Release (stable download link).
 - 2026-10-26 v1.0.0: First version. Core installer ported from upstream commit on `main`, UI, CI workflow, self-test (25 passing).
 

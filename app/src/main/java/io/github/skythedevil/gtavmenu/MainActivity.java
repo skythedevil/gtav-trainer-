@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -122,6 +123,12 @@ public class MainActivity extends Activity {
         root.addView(logScroll);
 
         root.addView(label("In GTA: L1 + D-pad Right opens the menu. Reinstall after restarting GTA.", 12, false, Color.LTGRAY));
+        TextView credit = label("Unofficial Android installer. Menu and installer by GronedWaffel: "
+                + "https://github.com/GronedWaffel/gta-v-ps5-menu (GPL-3.0). Story Mode only, use at your own risk.", 11, false, Color.GRAY);
+        credit.setPadding(0, dp(8), 0, 0);
+        credit.setLinkTextColor(ACCENT);
+        Linkify.addLinks(credit, Linkify.WEB_URLS);
+        root.addView(credit);
         setContentView(root);
     }
 
