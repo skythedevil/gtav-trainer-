@@ -15,9 +15,9 @@ Important: the cheats themselves live in a small program (`gta-bridge.bin`) that
 | Android app screen (IP, port, Check, Install, log) | Written, compiles against Android API 33 stubs |
 | Installer logic (port of the original JS installer) | Written, passes 25 checks against a pretend PS5 (`tools/selftest`) |
 | Bundled menu files for both game builds (PPSA04263 01.000.000, PPSA04264 01.010.002) | Copied unchanged from upstream into `app/src/main/assets/menu` |
-| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Written, NOT yet run |
+| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Runs and succeeds (first run 2026-10-27). Publishes the APK as a Release |
 | Real PS5 test | **NOT done** (no console available to Claude) |
-| Gradle build / APK file | **NOT built yet** — Claude's workspace cannot download Android build tools; GitHub does it |
+| Gradle build / APK file | Built by GitHub Actions. Direct link: https://github.com/skythedevil/gtav-trainer-/releases/latest/download/app-debug.apk |
 
 ## How the installer works (same order as upstream)
 1. Connect to PS5Debug-NG (port 744). Must say PS5Debug-NG v1.3.2 and a supported firmware (default target 13.60).
@@ -49,9 +49,9 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - Phone and PS5 must be on the same Wi-Fi. If a future Android version blocks local-network access, the app may need an extra permission.
 
 ## Change log
+- 2026-10-27: Project pushed to github.com/skythedevil/gtav-trainer-; first GitHub build succeeded; workflow now also publishes the APK as a Release (stable download link).
 - 2026-10-26 v1.0.0: First version. Core installer ported from upstream commit on `main`, UI, CI workflow, self-test (25 passing).
 
 ## Next steps / ideas
-- Run the GitHub build, fix any build error.
 - First real-console test: use "Check connection" first, then "Install".
 - Possible: show detected game version/firmware in a status line; remember last result.

@@ -8,7 +8,10 @@ After installing, the menu runs inside the game. In GTA press **L1 + D-pad Right
 - GTA V (PPSA04263 01.000.000 or PPSA04264 01.010.002), loaded into **Story Mode**
 - Phone and PS5 on the same Wi-Fi
 
-## Get the APK (no coding)
+## Get the APK
+Direct download of the latest build: `https://github.com/skythedevil/gtav-trainer-/releases/latest/download/app-debug.apk`
+
+## Build it yourself (no coding)
 1. Create a free account on github.com and make a **new repository** (private is fine).
 2. Click **Add file → Upload files** and drag in everything inside this folder (including the hidden `.github` folder). Commit.
 3. Open the **Actions** tab. The "Build APK" job runs by itself (about 5–10 minutes).

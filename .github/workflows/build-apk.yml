@@ -2,7 +2,11 @@ name: Build APK
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -30,3 +34,15 @@ jobs:
         with:
           name: GTA-V-PS5-Menu-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # Publishes a simple download link:
+      # https://github.com/<you>/<repo>/releases/latest/download/app-debug.apk
+      - name: Publish release with the APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest app/build/outputs/apk/debug/app-debug.apk \
+            --title "GTA V PS5 Menu Installer (latest build)" \
+            --notes "Download app-debug.apk, install it on your phone, and follow the README." \
+            --latest
