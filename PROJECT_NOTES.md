@@ -14,8 +14,8 @@ Important: the cheats themselves live in a small program (`gta-bridge.bin`) that
 |---|---|
 | Android app screen (IP, port, Check, Install, log) | Written, compiles against Android API 33 stubs |
 | Installer logic (port of the original JS installer) | Written, passes 25 checks against a pretend PS5 (`tools/selftest`) |
-| Bundled menu files for both game builds (PPSA04263 01.000.000, PPSA04264 01.010.002) | Copied unchanged from upstream into `app/src/main/assets/menu` |
-| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Runs and succeeds (first run 2026-10-27). Publishes the APK as a Release |
+| Bundled menu files for both game builds (PPSA04263 01.000.000, PPSA04264 01.010.002) | Rebuilt by CI from the local C source; both profile-specific binaries are packaged into the APK |
+| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Updated to compile both native bridges with Zig, then run installer self-tests and build the APK; feature-branch build pending |
 | Real PS5 test | Install confirmed working on the owner's real PS5 (2026-10-27) |
 | Gradle build / APK file | Built by GitHub Actions. Direct link: https://github.com/skythedevil/gtav-trainer-/releases/latest/download/app-debug.apk |
 
@@ -31,7 +31,8 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - `app/src/main/java/.../core/` — logic with no Android parts: `Installer` (steps above), `Ps5Debug` (network), `MiniJson`, `Bytes`, `InstallException`.
 - `app/src/main/java/.../MainActivity.java` — the single screen.
 - `app/src/main/assets/menu/` — upstream menu binaries + profiles (GPL-3.0). Do not edit by hand.
-- `menu-source/` — upstream menu source (C) shipped for GPL compliance.
+- `menu-source/` — upstream menu source (C), including the speedometer feature.
+- `scripts/build-gta-bridge.mjs` and `scripts/build-gta-vehicles.mjs` — reproducible native bridge build scripts used by CI.
 - `tools/selftest/` — pretend PS5 + tests. Run: `sh tools/selftest/run.sh`.
 - `.github/workflows/build-apk.yml` — builds `app-debug.apk` on GitHub, runs the self-test first.
 
@@ -47,6 +48,11 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - Story Mode only. Not for GTA Online.
 - Some menu actions (money, skills, trophies) can affect autosaves.
 - Phone and PS5 must be on the same Wi-Fi. If a future Android version blocks local-network access, the app may need an extra permission.
+
+## Speedometer feature (feature branch)
+- Garage menu: `Speedometer` toggles the HUD on/off; `Speedometer style` switches Digital/Gauge; `Speed unit` switches KM/H/MPH.
+- Speed is read from the vehicle entity each game frame and rendered only while driving in Story Mode. The speedometer is hidden while the trainer menu is open.
+- CI is configured to rebuild both supported game-profile binaries before packaging. Do not install the feature APK until the feature-branch workflow succeeds and the new HUD is tested on the console.
 
 ## Change log
 - 2026-10-27 v1.0.1: Credits added: new README (credit to GronedWaffel, install guide, troubleshooting), CREDITS.md, in-app credit line.
