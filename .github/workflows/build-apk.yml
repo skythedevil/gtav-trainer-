@@ -66,8 +66,9 @@ jobs:
           name: GTA-V-PS5-Menu-apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      # Publish only from main; feature branches produce artifacts for review.
-      - name: Publish release with the APK
+      # Stable release is published only from main; feature builds get their own
+      # separate release so they never overwrite the stable APK.
+      - name: Publish stable release with the APK
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,3 +78,13 @@ jobs:
             --title "GTA V PS5 Menu Installer (latest build)" \
             --notes "Download app-debug.apk, install it on your phone, and follow the README." \
             --latest
+
+      - name: Publish feature release with the APK
+        if: github.ref == 'refs/heads/feature/gta-speedometer'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete feature-latest --yes --cleanup-tag || true
+          gh release create feature-latest app/build/outputs/apk/debug/app-debug.apk \
+            --title "GTA V PS5 Menu Installer (feature build)" \
+            --notes "Experimental feature-branch build. Includes the current speedometer work. Test in Story Mode on a supported jailbroken PS5; not verified on a real console yet." 
