@@ -36,7 +36,8 @@ static const char vehicle_classes[][24]={"Compacts","Sedans","SUVs","Coupes","Mu
 static struct {
     u32 frame, initialized, open, page, row, previous_keys, confirm, job, step, started, model;
     u32 flags[TOGGLE_COUNT], vehicle, vehicle_model, weapon, weather, hour, component, drawable, texture;
-    u32 speedo_style, speedo_mph;
+    u32 speedo_style, speedo_mph, speedo_vehicle;
+    float speedo_max;
     u32 spawn, character, tick_count, renders, last_error, wanted_clears, last_ped, last_vehicle;
     float x, y; char notice[96]; u32 notice_until; u64 prologue_stack, prologue_thread, prologue_hash; u32 prologue_offset;
     u32 warm_model, warm_ready, warm_changed, warm_candidate, repeat_key, repeat_at, parent, parent_row;
@@ -232,36 +233,73 @@ static void text(float x,float y,float size,const char *s,u32 green) {
 }
 static void rect(float x,float y,float w,float h,u32 r,u32 g,u32 b,u32 a) { N(DRAW_RECT,F(x),F(y),F(w),F(h),r,g,b,a,0); }
 static void speedometer_tick(void) {
-    if (!menu.flags[SPEEDO] || menu.open || menu.preview_active || N(IS_CUTSCENE_ACTIVE)) return;
     u32 vehicle = car();
-    if (!vehicle || !N(DOES_ENTITY_EXIST, vehicle)) return;
+    // Vehicle sessions are isolated: exiting or switching cars clears MAX.
+    if (!vehicle || !N(DOES_ENTITY_EXIST, vehicle)) {
+        menu.speedo_vehicle = 0;
+        menu.speedo_max = 0.0f;
+        return;
+    }
+    if (vehicle != menu.speedo_vehicle) {
+        menu.speedo_vehicle = vehicle;
+        menu.speedo_max = 0.0f;
+    }
+    if (!menu.flags[SPEEDO] || menu.open || menu.preview_active || N(IS_CUTSCENE_ACTIVE)) return;
+
     float metres_per_second = as_float(N(GET_ENTITY_SPEED, vehicle));
     if (!(metres_per_second >= 0.0f) || metres_per_second > 250.0f) return;
     float speed = metres_per_second * (menu.speedo_mph ? 2.2369363f : 3.6f);
+    if (speed > menu.speedo_max) menu.speedo_max = speed;
     u32 rounded = (u32)(speed + 0.5f);
-    char value[16]; number(value, rounded);
+    u32 max_rounded = (u32)(menu.speedo_max + 0.5f);
+    char value[16], max_value[16];
+    number(value, rounded);
+    number(max_value, max_rounded);
     const char *unit = menu.speedo_mph ? "MPH" : "KM/H";
+
     if (!menu.speedo_style) {
-        rect(.865f,.875f,.190f,.085f,8,14,18,220);
-        rect(.865f,.832f,.190f,.002f,61,84,78,255);
-        text(.790f,.842f,.23f,"SPEED",0);
-        text(.790f,.865f,.42f,value,1);
-        text(.922f,.891f,.22f,unit,0);
+        // Clean digital performance cluster, with live and session-maximum speed.
+        rect(.865f,.858f,.218f,.128f,7,11,17,238);
+        rect(.865f,.796f,.218f,.003f,70,188,164,255);
+        rect(.865f,.920f,.218f,.002f,37,51,62,255);
+        text(.773f,.808f,.21f,"CURRENT",0);
+        text(.773f,.834f,.47f,value,1);
+        text(.915f,.844f,.18f,unit,0);
+        text(.773f,.886f,.20f,"MAX",0);
+        text(.815f,.886f,.25f,max_value,1);
+        text(.921f,.886f,.18f,"SESSION",0);
         return;
     }
-    // A compact dashboard-style half-dial made from native HUD primitives.
-    rect(.865f,.858f,.218f,.132f,8,14,18,220);
-    static const float xs[13]={.773f,.784f,.800f,.819f,.841f,.865f,.889f,.911f,.930f,.946f,.958f,.965f,.968f};
-    static const float ys[13]={.861f,.835f,.812f,.794f,.782f,.778f,.782f,.794f,.812f,.835f,.861f,.879f,.889f};
+
+    // Sport-car cluster: curved illuminated scale, large digital speed and MAX memory.
+    rect(.865f,.858f,.232f,.154f,5,9,15,242);
+    rect(.865f,.785f,.232f,.002f,47,67,78,255);
+    static const float xs[13]={.770f,.780f,.795f,.815f,.839f,.865f,.891f,.915f,.935f,.950f,.961f,.967f,.970f};
+    static const float ys[13]={.865f,.837f,.812f,.793f,.781f,.777f,.781f,.793f,.812f,.837f,.865f,.883f,.892f};
     float max_speed = menu.speedo_mph ? 160.0f : 260.0f;
     float ratio = speed / max_speed;
     if (ratio > 1.0f) ratio = 1.0f;
     for (u32 i=0;i<13;i++) {
         u32 lit = (float)i <= ratio * 12.0f;
-        rect(xs[i],ys[i],.006f,.015f,lit?61:45,lit?220:58,lit?151:66,255);
+        u32 redline = i >= 10;
+        rect(xs[i],ys[i],i%3==0?.008f:.005f,i%3==0?.018f:.012f,
+             lit?(redline?255:65):39,lit?(redline?87:225):51,lit?(redline?57:172):61,255);
     }
-    text(.823f,.827f,.36f,value,1);
-    text(.840f,.862f,.19f,unit,0);
+    // A luminous progress arc gives the needle-like sweep without relying on sprites.
+    for (u32 i=0;i<12;i++) {
+        if ((float)i >= ratio * 12.0f) break;
+        float mx=(xs[i]+xs[i+1])*.5f, my=(ys[i]+ys[i+1])*.5f;
+        rect(mx,my,.012f,.004f,i>=9?245:48,i>=9?82:210,i>=9?55:156,255);
+    }
+    // Center hub and layered readouts emulate a modern performance instrument.
+    rect(.865f,.851f,.026f,.026f,25,37,47,255);
+    rect(.865f,.851f,.012f,.012f,80,225,177,255);
+    text(.819f,.821f,.43f,value,1);
+    text(.842f,.858f,.19f,unit,0);
+    rect(.865f,.903f,.196f,.002f,48,67,78,255);
+    text(.778f,.914f,.20f,"MAX",0);
+    text(.818f,.911f,.28f,max_value,1);
+    text(.918f,.916f,.17f,"SESSION",0);
 }
 #define ITEMS(a) (sizeof(a)/sizeof((a)[0]))
 static const char *title(u32 page) { switch(page){case 1:return "PLAYER";case 2:return "WEAPONS";case 3:return "GARAGE";case 4:return "VEHICLE SPAWNER";case 5:return "WORLD";case 6:return "CHARACTER";case 7:return "STORY & PROGRESSION";case 8:return "WEAPON CATALOGUE";case 9:return "WEATHER";case 10:return "PLAYER MODELS";case 11:return "CLOTHING & OUTFITS";case 12:return "CLOTHING ITEMS";case 13:return "COLORS / TEXTURES";case 14:return "TIME OF DAY";case 15:return vehicle_classes[menu.vehicle_class];default:return "STORY MODE";} }
