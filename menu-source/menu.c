@@ -27,7 +27,7 @@ static u64 nc(u64 address, u32 count, u64 *args, u64 *out) {
 // link-time address in this flat image, which can be allocated at any base.
 static u64 native_pointer(const void *p){u64 address=(u64)p;__asm__ volatile("" : "+r"(address));return address;}
 #define P(x) native_pointer(x)
-enum { GOD, CLIP, AMMO, RUN, JUMP, WANTED, EXPLOSIVE, BELT, RADIO, PHONE, CAR_GOD, HORN, STICKY, WATER, FIDELITY, SPEEDO, POLICE_IGNORE, TOGGLE_COUNT };
+enum { GOD, CLIP, AMMO, RUN, JUMP, WANTED, EXPLOSIVE, BELT, RADIO, PHONE, CAR_GOD, HORN, STICKY, WATER, FIDELITY, SPEEDO, TOGGLE_COUNT };
 #include "fidelity-cap.h"
 static FidelityCap fidelity;
 #include "vehicle-catalogue.h"
@@ -303,7 +303,7 @@ static void speedometer_tick(void) {
 }
 #define ITEMS(a) (sizeof(a)/sizeof((a)[0]))
 static const char *title(u32 page) { switch(page){case 1:return "PLAYER";case 2:return "WEAPONS";case 3:return "GARAGE";case 4:return "VEHICLE SPAWNER";case 5:return "WORLD";case 6:return "CHARACTER";case 7:return "STORY & PROGRESSION";case 8:return "WEAPON CATALOGUE";case 9:return "WEATHER";case 10:return "PLAYER MODELS";case 11:return "CLOTHING & OUTFITS";case 12:return "CLOTHING ITEMS";case 13:return "COLORS / TEXTURES";case 14:return "TIME OF DAY";case 15:return vehicle_classes[menu.vehicle_class];default:return "STORY MODE";} }
-static u32 rows(void) {switch(menu.page){case 1:return 10;case 2:return 5;case 3:return 11;case 4:return menu.class_total?menu.class_total:1;case 15:return menu.class_count[menu.vehicle_class]?menu.class_count[menu.vehicle_class]:1;case 5:return 4;case 6:return 2;case 7:return 5;case 8:return ITEMS(weapon_names);case 9:return ITEMS(weather_names);case 10:return ITEMS(ped_names);case 11:return ITEMS(component_labels);case 12:{u32 n=N(GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS,ped(),menu.component);return n&&n<4096?n:1;}case 13:{u32 n=N(GET_NUMBER_OF_PED_TEXTURE_VARIATIONS,ped(),menu.component,menu.drawable);return n&&n<4096?n:1;}case 14:return 24;default:return 8;}}
+static u32 rows(void) {switch(menu.page){case 1:return 9;case 2:return 5;case 3:return 11;case 4:return menu.class_total?menu.class_total:1;case 15:return menu.class_count[menu.vehicle_class]?menu.class_count[menu.vehicle_class]:1;case 5:return 4;case 6:return 2;case 7:return 5;case 8:return ITEMS(weapon_names);case 9:return ITEMS(weather_names);case 10:return ITEMS(ped_names);case 11:return ITEMS(component_labels);case 12:{u32 n=N(GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS,ped(),menu.component);return n&&n<4096?n:1;}case 13:{u32 n=N(GET_NUMBER_OF_PED_TEXTURE_VARIATIONS,ped(),menu.component,menu.drawable);return n&&n<4096?n:1;}case 14:return 24;default:return 8;}}
 static void scroll_to_selection(void) {
     u32 n=rows();if(menu.row>=n)menu.row=n-1;
     u32 old=menu.scroll;
@@ -323,7 +323,7 @@ static void back_page(void) {
 }
 static int toggle_at(u32 page,u32 row) {
     if(page==5&&row==3)return FIDELITY;
-    if(page==1){switch(row){case 0:return GOD;case 1:return WANTED;case 2:return RUN;case 3:return JUMP;case 4:return BELT;case 5:return RADIO;case 6:return PHONE;case 7:return POLICE_IGNORE;}}
+    if(page==1){switch(row){case 0:return GOD;case 1:return WANTED;case 2:return RUN;case 3:return JUMP;case 4:return BELT;case 5:return RADIO;case 6:return PHONE;}}
     if(page==2&&row<3)return row==0?CLIP:row==1?AMMO:EXPLOSIVE;
     if(page==3){switch(row){case 0:return CAR_GOD;case 2:return HORN;case 3:return STICKY;case 4:return WATER;case 8:return SPEEDO;}}
     return -1;
@@ -331,7 +331,7 @@ static int toggle_at(u32 page,u32 row) {
 static const char *label(u32 row) {
     switch(menu.page){
     case 0:switch(row){case 0:return "Player";case 1:return "Weapons";case 2:return "Garage";case 3:return "Vehicle spawner";case 4:return "World";case 5:return "Character";case 6:return "Story & progression";default:return "Close menu";}
-    case 1:switch(row){case 0:return "God mode";case 1:return "Never wanted";case 2:return "Super run (1.49x)";case 3:return "Super jump";case 4:return "Seatbelt";case 5:return "Walking radio";case 6:return "Phone off";case 7:return "Police ignore";case 8:return "Heal + full armour";default:return "Clear wanted level now";}
+    case 1:switch(row){case 0:return "God mode";case 1:return "Never wanted";case 2:return "Super run (1.49x)";case 3:return "Super jump";case 4:return "Seatbelt";case 5:return "Walking radio";case 6:return "Phone off";case 7:return "Heal player";default:return "Clear wanted level now";}
     case 2:switch(row){case 0:return "Infinite clip";case 1:return "Infinite ammo";case 2:return "Explosive ammo";case 3:return "Weapon catalogue";default:return "Give all weapons";}
     case 3:switch(row){case 0:return "Vehicle god mode";case 1:return "Max performance upgrades";case 2:return "Horn boost";case 3:return "Stick vehicle to ground";case 4:return "Drive on water";case 5:return "Repair vehicle";case 6:return "Upright vehicle";case 7:return "Vehicle spawner";case 8:return "Speedometer";case 9:return menu.speedo_style?"Speedometer style: Gauge":"Speedometer style: Digital";default:return menu.speedo_mph?"Speed unit: MPH":"Speed unit: KM/H";}
     case 4:return row<menu.class_total?vehicle_classes[menu.available_classes[row]]:"Preparing catalogue...";
@@ -405,7 +405,7 @@ static void toggle(u32 id) {
     case WANTED:frame_flag(64,on);if(on)clear_wanted();break;
     case BELT:N(SET_PED_CONFIG_FLAG,p,32,!on);N(SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE,p,on?1:0);break;
     case RADIO:N(SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY,on);break;
-    case POLICE_IGNORE:N(SET_POLICE_IGNORE_PLAYER,0,on);break;
+    
     case CAR_GOD:{u32 v=car();if(v){N(SET_ENTITY_INVINCIBLE,v,on);N(SET_VEHICLE_TYRES_CAN_BURST,v,!on);N(SET_VEHICLE_CAN_BREAK,v,!on);}else say("Applies when you enter a vehicle");break;}
     case WATER:if(on){begin_model(4,"prop_container_ld2");if(menu.job!=4)menu.flags[id]=0;}else{frame_flag(32,0);u32 object=mailbox.platform;mailbox.platform=0;if(object&&N(DOES_ENTITY_EXIST,object))N(DELETE_OBJECT,P(&object));}break;
     default:break;
@@ -473,7 +473,7 @@ static void activate(u32 confirmed) {
     if((menu.page==7||menu.page==10)&&!confirmed){menu.confirm=1;return;}
     if(id>=0){toggle(id);return;}
     menu.started=now();
-    if(menu.page==1){if(r==8){u32 health=N(GET_ENTITY_MAX_HEALTH,p);N(SET_ENTITY_HEALTH,p,health,0,0);N(SET_PED_ARMOUR,p,100);say("Health and armour restored");}else if(r==9)clear_wanted();}
+    if(menu.page==1){if(r==7){u32 health=N(GET_ENTITY_MAX_HEALTH,p);N(SET_ENTITY_HEALTH,p,health,0,0);}else clear_wanted();}
     if(menu.page==2&&r==4){menu.job=5;menu.step=0;say("Giving weapon catalogue...");}
     if(menu.page==3){
         if(!v){say("Enter a vehicle first");return;}
