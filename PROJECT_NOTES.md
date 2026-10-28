@@ -15,7 +15,7 @@ Important: the cheats themselves live in a small program (`gta-bridge.bin`) that
 | Android app screen (IP, port, Check, Install, log) | Written, compiles against Android API 33 stubs |
 | Installer logic (port of the original JS installer) | Written, passes 25 checks against a pretend PS5 (`tools/selftest`) |
 | Bundled menu files for both game builds (PPSA04263 01.000.000, PPSA04264 01.010.002) | Rebuilt by CI from the local C source; both profile-specific binaries are packaged into the APK |
-| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Updated to compile both native bridges with Zig, then run installer self-tests and build the APK; feature-branch build pending |
+| Automatic APK build on GitHub (`.github/workflows/build-apk.yml`) | Both native bridges compile; installer self-tests pass; APK builds successfully. Feature branch will publish to a separate `feature-latest` release so it cannot overwrite the stable `latest` release |
 | Real PS5 test | Install confirmed working on the owner's real PS5 (2026-10-27) |
 | Gradle build / APK file | Built by GitHub Actions. Direct link: https://github.com/skythedevil/gtav-trainer-/releases/latest/download/app-debug.apk |
 
@@ -50,14 +50,14 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - Phone and PS5 must be on the same Wi-Fi. If a future Android version blocks local-network access, the app may need an extra permission.
 
 ## ENT-inspired cheat additions (feature branch)
-- Added a **Police ignore** toggle to the Player menu using the game's native police-ignore control.
-- Updated **Heal player** to restore both health and full armour.
-- These are source changes only until the GitHub Actions build passes; the options have not yet been verified on a real PS5. Continue next with special ability, explosive melee/fire ammo, vehicle customisation, and named teleport destinations after checking native availability and build compatibility.
+- Police-ignore and full-armour additions were reverted because their native handlers are not registered for the supported game profiles. They are **not implemented**.
+- Existing verified-handler options remain in place; do not add new native calls unless the handler and profile offsets are confirmed for each supported build.
+- The speedometer build compiles and passes automated installer tests, but speedometer behavior still needs real-console verification. Continue by auditing existing registered natives and add only features that can be tested safely.
 
 ## Speedometer feature (feature branch)
 - Garage menu: `Speedometer` toggles the HUD on/off; `Speedometer style` switches Digital/Gauge; `Speed unit` switches KM/H/MPH.
 - Speed is read from the vehicle entity each game frame and rendered only while driving in Story Mode. The speedometer is hidden while the trainer menu is open.
-- CI is configured to rebuild both supported game-profile binaries before packaging. Do not install the feature APK until the feature-branch workflow succeeds and the new HUD is tested on the console.
+- CI rebuilds both supported game-profile binaries before packaging. The feature branch publishes to a separate `feature-latest` GitHub Release; stable `latest` remains main-only. Build success is not proof of real-console HUD behavior.
 
 ## Change log
 - 2026-10-27 v1.0.1: Credits added: new README (credit to GronedWaffel, install guide, troubleshooting), CREDITS.md, in-app credit line.
