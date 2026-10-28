@@ -46,7 +46,7 @@ You'll need to run the install again each time you restart GTA.
 
 ### What's in the menu
 
-Player (god mode, infinite ammo, super run/jump, never wanted), weapons, a vehicle spawner and vehicle tweaks, character and clothing changer, world options (teleport to waypoint, weather, time), and story options. The full, up-to-date list is in the [original README](https://github.com/GronedWaffel/gta-v-ps5-menu#options).
+Player (god mode, infinite ammo, super run/jump, never wanted), weapons, a vehicle spawner and vehicle tweaks, character and clothing changer, world options (teleport to waypoint, weather, time), and story options. The Garage page also includes a configurable in-game speedometer (digital or dashboard gauge, KM/H or MPH), shown while driving in Story Mode. The full, up-to-date list is in the [original README](https://github.com/GronedWaffel/gta-v-ps5-menu#options).
 
 Some options (money, skills, trophy requests) can affect your autosaves. The menu asks for confirmation first.
 

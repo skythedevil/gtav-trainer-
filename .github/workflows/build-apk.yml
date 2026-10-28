@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/gta-speedometer]
   workflow_dispatch:
 
 permissions:
@@ -18,6 +18,37 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Build the in-game bridge for BOTH supported GTA V profiles. The APK
+      # installer only transfers these binaries; it does not execute game code.
+      - name: Install Zig 0.14.1
+        run: |
+          curl -fsSL https://ziglang.org/download/0.14.1/zig-x86_64-linux-0.14.1.tar.xz -o /tmp/zig.tar.xz
+          mkdir -p "$RUNNER_TEMP/zig"
+          tar -xJf /tmp/zig.tar.xz -C "$RUNNER_TEMP/zig" --strip-components=1
+          echo "$RUNNER_TEMP/zig" >> "$GITHUB_PATH"
+
+      - name: Prepare native bridge build inputs
+        run: |
+          mkdir -p menu/profiles/ppsa04264-01.010.002
+          cp menu-source/bridge.c menu-source/bridge.ld menu-source/menu.c menu-source/fidelity-cap.h menu-source/clothing-labels.h menu-source/vehicles.json menu/
+          cp app/src/main/assets/menu/profile.json menu/profile.json
+          cp app/src/main/assets/menu/native-addresses.json menu/native-addresses.json
+          cp menu-source/profiles-source/ppsa04264-01.010.002/profile.json menu/profiles/ppsa04264-01.010.002/profile.json
+          cp menu-source/profiles-source/ppsa04264-01.010.002/native-addresses.json menu/profiles/ppsa04264-01.010.002/native-addresses.json
+          printf '[".", "profiles/ppsa04264-01.010.002"]\n' > menu/profiles.json
+
+      - name: Build both native game bridges
+        env:
+          ZIG: zig
+        run: |
+          node scripts/build-gta-bridge.mjs
+          cp menu/gta-bridge.bin app/src/main/assets/menu/gta-bridge.bin
+          cp menu/profiles/ppsa04264-01.010.002/gta-bridge.bin app/src/main/assets/menu/profiles/ppsa04264-01.010.002/gta-bridge.bin
 
       # Safety net: runs the installer logic against a pretend PS5 before building.
       - name: Self-test (pretend PS5)
@@ -35,9 +66,10 @@ jobs:
           name: GTA-V-PS5-Menu-apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      # Publishes a simple download link:
-      # https://github.com/<you>/<repo>/releases/latest/download/app-debug.apk
-      - name: Publish release with the APK
+      # Stable release is published only from main; feature builds get their own
+      # separate release so they never overwrite the stable APK.
+      - name: Publish stable release with the APK
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -46,3 +78,13 @@ jobs:
             --title "GTA V PS5 Menu Installer (latest build)" \
             --notes "Download app-debug.apk, install it on your phone, and follow the README." \
             --latest
+
+      - name: Publish feature release with the APK
+        if: github.ref == 'refs/heads/feature/gta-speedometer'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete feature-latest --yes --cleanup-tag || true
+          gh release create feature-latest app/build/outputs/apk/debug/app-debug.apk \
+            --title "GTA V PS5 Menu Installer (feature build)" \
+            --notes "Experimental feature-branch build. Includes the current speedometer work. Test in Story Mode on a supported jailbroken PS5; not verified on a real console yet." 
