@@ -49,6 +49,11 @@ Re-running install after it is already installed re-attaches (uses saved recover
 - Some menu actions (money, skills, trophies) can affect autosaves.
 - Phone and PS5 must be on the same Wi-Fi. If a future Android version blocks local-network access, the app may need an extra permission.
 
+## ENT-inspired cheat additions (feature branch)
+- Added a **Police ignore** toggle to the Player menu using the game's native police-ignore control.
+- Updated **Heal player** to restore both health and full armour.
+- These are source changes only until the GitHub Actions build passes; the options have not yet been verified on a real PS5. Continue next with special ability, explosive melee/fire ammo, vehicle customisation, and named teleport destinations after checking native availability and build compatibility.
+
 ## Speedometer feature (feature branch)
 - Garage menu: `Speedometer` toggles the HUD on/off; `Speedometer style` switches Digital/Gauge; `Speed unit` switches KM/H/MPH.
 - Speed is read from the vehicle entity each game frame and rendered only while driving in Story Mode. The speedometer is hidden while the trainer menu is open.
