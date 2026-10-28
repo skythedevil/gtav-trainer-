@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <meta name="description" content="Mobile companion interface for your GTA V PS5 menu setup.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <title>GTA V · PS5 Companion</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="GTA V PS5 Companion home"><span class="brand-mark">V</span><span><b>GTA V</b><small>PS5 COMPANION</small></span></a>
+      <span class="pill"><i></i> MOBILE UI</span>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">STORY MODE TOOLKIT</p>
+      <h1>YOUR GAME.<br><em>YOUR RULES.</em></h1>
+      <p class="subhead">A mobile-friendly dashboard for your PS5 menu setup.</p>
+      <div class="hero-art" aria-hidden="true"><div class="sun"></div><div class="city city-back"></div><div class="city city-front"></div><div class="road"></div><div class="hero-label">LOS SANTOS <span>·</span> SAN ANDREAS</div></div>
+    </section>
+
+    <section class="panel connection">
+      <div class="section-heading"><div><p class="eyebrow">01 / CONNECTION</p><h2>Connect your PS5</h2></div><span class="status-dot"></span></div>
+      <label for="ps5-address">PS5 address</label>
+      <div class="address-row"><input id="ps5-address" inputmode="url" autocomplete="url" placeholder="192.168.1.100" aria-describedby="address-help"><button id="open-ps5" class="button button-primary">OPEN PS5 ↗</button></div>
+      <p id="address-help" class="helper">Connect your phone and PS5 to the same Wi-Fi. This opens the address you enter; it does not verify a debugger connection.</p>
+      <p id="connection-message" class="message" role="status">Not connected · enter your PS5's local IP address.</p>
+    </section>
+
+    <section class="menu-section">
+      <div class="section-heading"><div><p class="eyebrow">02 / MENU CATEGORIES</p><h2>Quick access</h2></div><span class="muted">6 MODULES</span></div>
+      <div class="module-grid">
+        <button class="module" data-module="Player"><span class="module-icon">✦</span><b>Player</b><small>Health · abilities</small><span class="arrow">↗</span></button>
+        <button class="module" data-module="Weapons"><span class="module-icon">⌁</span><b>Weapons</b><small>Loadout · ammo</small><span class="arrow">↗</span></button>
+        <button class="module" data-module="Vehicles"><span class="module-icon">▰</span><b>Vehicles</b><small>Spawn · upgrades</small><span class="arrow">↗</span></button>
+        <button class="module" data-module="World"><span class="module-icon">◉</span><b>World</b><small>Time · weather</small><span class="arrow">↗</span></button>
+        <button class="module" data-module="Character"><span class="module-icon">♙</span><b>Character</b><small>Model · clothing</small><span class="arrow">↗</span></button>
+        <button class="module" data-module="Story"><span class="module-icon">$</span><b>Story</b><small>Progress · cash</small><span class="arrow">↗</span></button>
+      </div>
+      <p id="module-message" class="message" role="status">Choose a module to see setup status.</p>
+    </section>
+
+    <section class="panel install-panel">
+      <p class="eyebrow">03 / INSTALLATION</p>
+      <h2>Menu installer</h2>
+      <p class="body-copy">The mobile interface is ready. The actual PS5Debug-NG installer/payload bridge still needs to be connected before installation or cheat commands can run.</p>
+      <div class="notice"><span>!</span><p><b>Installer not configured</b><br><small>No commands will be sent to your console from this starter build.</small></p></div>
+      <button id="install-info" class="button button-outline">VIEW NEXT STEPS</button>
+    </section>
+
+    <footer><span class="brand-mark small-mark">V</span><p>COMMUNITY PROJECT · USE IN STORY MODE<br><small>Unofficial companion interface. Not affiliated with Rockstar Games or Sony.</small></p></footer>
+  </main>
+  <nav class="bottom-nav" aria-label="Quick navigation"><a href="#connection" data-scroll="connection">⌁<span>CONNECT</span></a><a href="#menu" data-scroll="menu-section">▦<span>MODULES</span></a><a href="#install" data-scroll="install-panel">⇩<span>INSTALL</span></a></nav>
+  <script src="/app.js"></script>
+</body>
+</html>
